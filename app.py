@@ -1,36 +1,62 @@
 import streamlit as st
 import pandas as pd
-st.title("나의 Streamlit 웹페이지")
 
-name = st.text_input("이름을 입력하세요")
-age = st.number_input("나이", min_value=0, max_value=120)
+# ---------------------
+# 데이터
+# ---------------------
+PM_DATA = {
+    "SAMSUNG": {
+        "SM-100": pd.DataFrame([
+            {"No": 1, "점검항목": "청결", "점검기준": "30≤"},
+            {"No": 2, "점검항목": "그리스", "점검기준": "주입"},
+            {"No": 3, "점검항목": "평탄도", "점검기준": "30≤"},
+        ])
+    }
+}
 
-if st.button("확인"):
-    st.write(f"안녕하세요 {name}님, {age}살이시군요!")
-col1, col2 = st.columns(2)
-
-with col1:
-    st.header("왼쪽")
-    st.write("왼쪽 영역")
-
-with col2:
-    st.header("오른쪽")
-    st.write("오른쪽 영역")
+# ---------------------
+# 사이드바
+# ---------------------
 st.sidebar.title("메뉴")
-menu = st.sidebar.selectbox(
+page = st.sidebar.radio(
     "이동",
-    ["홈", "통계", "설정"]
+    ["Dashboard", "PM Sheet"]
 )
 
-if menu == "홈":
-    st.write("홈 화면")
-elif menu == "통계":
-    st.write("통계 화면")
-else:
-    st.write("설정 화면")
-df = pd.DataFrame({
-    "월": ["1월", "2월", "3월"],
-    "매출": [100, 150, 90]
-})
+# ---------------------
+# Dashboard
+# ---------------------
+if page == "Dashboard":
+    st.title("📊 장비 점검 대시보드")
+    st.metric("총 장비 수", 5)
+    st.metric("PASS", 42)
+    st.metric("FAIL", 3)
 
-st.bar_chart(df.set_index("월"))
+# ---------------------
+# PM Sheet
+# ---------------------
+elif page == "PM Sheet":
+    st.title("🛠 PM Sheet")
+
+    maker = st.selectbox("Maker 선택", list(PM_DATA.keys()))
+    model = st.selectbox("Model 선택", list(PM_DATA[maker].keys()))
+
+    df = PM_DATA[maker][model].copy()
+
+    st.subheader(f"{maker} / {model} 점검표")
+
+    # 점검값 입력
+    df["점검값"] = ""
+    df["점검결과"] = ""
+    df["조치사항"] = ""
+    df["점검값2"] = ""
+    df["점검결과2"] = ""
+
+    edited_df = st.data_editor(
+        df,
+        use_container_width=True,
+        num_rows="fixed"
+    )
+
+    if st.button("저장"):
+        st.success("점검표가 저장되었습니다.")
